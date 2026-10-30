@@ -81,3 +81,38 @@ exports.getNoteById = async (req, res) => {
     res.status(400).json({ message: "Invalid note id" });
   }
 };
+
+// POST /api/notes/:id/rate   body: { "value": 1-5 }
+exports.rateNote = async (req, res) => {
+  try {
+    const value = Number(req.body.value);
+    if (!Number.isInteger(value) || value < 1 || value > 5) {
+      return res.status(400).json({ message: "Rating must be a whole number from 1 to 5" });
+    }
+
+    const note = await Note.findById(req.params.id);
+    if (!note) return res.status(404).json({ message: "Note not found" });
+
+    if (note.uploader.equals(req.user._id)) {
+      return res.status(400).json({ message: "You cannot rate your own note" });
+    }
+
+    const existing = note.ratings.find((r) => r.user.equals(req.user._id));
+    if (existing) existing.value = value; // rating eka wenas karanna puluwan
+    else note.ratings.push({ user: req.user._id, value });
+
+    const total = note.ratings.reduce((sum, r) => sum + r.value, 0);
+    note.averageRating = Math.round((total / note.ratings.length) * 10) / 10;
+
+    await note.save();
+
+    res.json({
+      averageRating: note.averageRating,
+      ratingsCount: note.ratings.length,
+      yourRating: value,
+    });
+  } catch (err) {
+    if (err.name === "CastError") return res.status(400).json({ message: "Invalid note id" });
+    res.status(500).json({ message: err.message });
+  }
+};
