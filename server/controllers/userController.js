@@ -22,6 +22,7 @@ exports.getMyStats = async (req, res) => {
         _id: n._id,
         title: n.title,
         subject: n.subject,
+        courseCode: n.courseCode,
         averageRating: n.averageRating,
         ratingsCount: n.ratings.length,
         downloads: n.downloads,

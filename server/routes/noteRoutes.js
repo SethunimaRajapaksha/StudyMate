@@ -4,7 +4,10 @@ const upload = require("../middleware/uploadMiddleware");
 const {
   uploadNote,
   getNotes,
+  getSubjects,
   getNoteById,
+  updateNote,
+  deleteNote,
   rateNote,
   downloadNote,
 } = require("../controllers/noteController");
@@ -18,9 +21,12 @@ const router = express.Router();
 
 router.post("/", protect, upload, uploadNote);
 router.get("/", protect, getNotes);
+router.get("/subjects", protect, getSubjects);
 
 router.get("/:id/download", protect, downloadNote);
 router.get("/:id", protect, getNoteById);
+router.put("/:id", protect, updateNote);
+router.delete("/:id", protect, deleteNote);
 
 router.post("/:id/rate", protect, rateNote);
 

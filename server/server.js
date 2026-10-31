@@ -18,6 +18,8 @@ app.use("/api/requests", require("./routes/requestRoutes"));
 
 app.use("/api/users", require("./routes/userRoutes"));
 
+app.use("/api/notifications", require("./routes/notificationRoutes"));
+
 // Database Connection
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected successfully!'))

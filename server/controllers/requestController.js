@@ -1,5 +1,7 @@
 const Request = require("../models/Request");
 const User = require("../models/User");
+const notify = require("../utils/notify");
+const { COURSE_CODE_REGEX, normalizeCourseCode } = require("../utils/constants");
 
 // POST /api/requests
 exports.createRequest = async (req, res) => {
@@ -10,6 +12,11 @@ exports.createRequest = async (req, res) => {
       return res.status(400).json({
         message: "Target uploader, topic description, course code and deadline are required",
       });
+    }
+
+    const code = normalizeCourseCode(targetCourseCode);
+    if (!COURSE_CODE_REGEX.test(code)) {
+      return res.status(400).json({ message: "Course code must look like IN24-S2-IT1207" });
     }
 
     const deadlineDate = new Date(deadline);
@@ -31,8 +38,15 @@ exports.createRequest = async (req, res) => {
       requesterId: req.user._id,
       targetUploaderId: target._id,
       topicDescription,
-      targetCourseCode,
+      targetCourseCode: code,
       deadline: deadlineDate,
+    });
+
+    await notify({
+      user: target._id,
+      type: "request",
+      message: `${req.user.name} requested notes for ${code}`,
+      link: "/dashboard",
     });
 
     res.status(201).json(request);
@@ -42,15 +56,15 @@ exports.createRequest = async (req, res) => {
   }
 };
 
-// GET /api/requests/incoming   (FR-7.1 + FR-7.2)
+// GET /api/requests/incoming
 exports.getIncomingRequests = async (req, res) => {
   try {
     const requests = await Request.find({ targetUploaderId: req.user._id })
-      .sort({ deadline: 1 }) // deadline eka langa ewa mulin
+      .sort({ deadline: 1 })
       .populate("requesterId", "name indexNumber");
 
     const now = Date.now();
-    const URGENT_MS = 3 * 24 * 60 * 60 * 1000; // dawas 3k wala adu nam urgent
+    const URGENT_MS = 3 * 24 * 60 * 60 * 1000;
 
     const result = requests.map((r) => {
       const msLeft = r.deadline.getTime() - now;
@@ -67,7 +81,7 @@ exports.getIncomingRequests = async (req, res) => {
   }
 };
 
-// GET /api/requests/sent   (mage yawapu requests)
+// GET /api/requests/sent
 exports.getSentRequests = async (req, res) => {
   try {
     const requests = await Request.find({ requesterId: req.user._id })
@@ -80,7 +94,6 @@ exports.getSentRequests = async (req, res) => {
 };
 
 // PATCH /api/requests/:id/status   body: { "status": "Fulfilled" }
-// Target uploader ta witharai wenas karanna puluwan
 exports.updateRequestStatus = async (req, res) => {
   try {
     const { status } = req.body;
@@ -95,8 +108,19 @@ exports.updateRequestStatus = async (req, res) => {
       return res.status(403).json({ message: "Only the target uploader can update this request" });
     }
 
+    const changed = request.status !== status;
     request.status = status;
-    await request.save();
+    await request.save({ validateModifiedOnly: true });
+
+    if (changed && status !== "Pending") {
+      await notify({
+        user: request.requesterId,
+        type: "request",
+        message: `Your request for ${request.targetCourseCode} was marked ${status.toLowerCase()}`,
+        link: "/dashboard",
+      });
+    }
+
     res.json(request);
   } catch (err) {
     if (err.name === "CastError") return res.status(400).json({ message: "Invalid request id" });
