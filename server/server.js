@@ -16,6 +16,8 @@ app.use("/api/notes", require("./routes/noteRoutes"));
 
 app.use("/api/requests", require("./routes/requestRoutes"));
 
+app.use("/api/users", require("./routes/userRoutes"));
+
 // Database Connection
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected successfully!'))

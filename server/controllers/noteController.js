@@ -1,5 +1,6 @@
 const Note = require("../models/Note");
 const cloudinary = require("../utils/cloudinary");
+const User = require("../models/User");
 
 const uploadToCloudinary = (buffer, originalName) =>
   new Promise((resolve, reject) => {
@@ -97,20 +98,52 @@ exports.rateNote = async (req, res) => {
       return res.status(400).json({ message: "You cannot rate your own note" });
     }
 
+    const isHigh = (v) => v >= 4;
+    let pointChange = 0;
+
     const existing = note.ratings.find((r) => r.user.equals(req.user._id));
-    if (existing) existing.value = value; // rating eka wenas karanna puluwan
-    else note.ratings.push({ user: req.user._id, value });
+    if (existing) {
+      pointChange = (isHigh(value) ? 1 : 0) - (isHigh(existing.value) ? 1 : 0);
+      existing.value = value;
+    } else {
+      pointChange = isHigh(value) ? 1 : 0;
+      note.ratings.push({ user: req.user._id, value });
+    }
 
     const total = note.ratings.reduce((sum, r) => sum + r.value, 0);
     note.averageRating = Math.round((total / note.ratings.length) * 10) / 10;
-
     await note.save();
+
+    if (pointChange !== 0) {
+      await User.findByIdAndUpdate(note.uploader, {
+        $inc: { reputationPoints: pointChange },
+      });
+    }
 
     res.json({
       averageRating: note.averageRating,
       ratingsCount: note.ratings.length,
       yourRating: value,
     });
+  } catch (err) {
+    if (err.name === "CastError") return res.status(400).json({ message: "Invalid note id" });
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// GET /api/notes/:id/download
+exports.downloadNote = async (req, res) => {
+  try {
+    const note = await Note.findById(req.params.id);
+    if (!note) return res.status(404).json({ message: "Note not found" });
+
+    // Own note download karoth count eka wadi karanne nae
+    if (!note.uploader.equals(req.user._id)) {
+      note.downloads += 1;
+      await note.save();
+    }
+
+    res.json({ fileUrl: note.fileUrl, downloads: note.downloads });
   } catch (err) {
     if (err.name === "CastError") return res.status(400).json({ message: "Invalid note id" });
     res.status(500).json({ message: err.message });

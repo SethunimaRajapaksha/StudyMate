@@ -6,6 +6,7 @@ const {
   getNotes,
   getNoteById,
   rateNote,
+  downloadNote,
 } = require("../controllers/noteController");
 const {
   addComment,
@@ -17,6 +18,8 @@ const router = express.Router();
 
 router.post("/", protect, upload, uploadNote);
 router.get("/", protect, getNotes);
+
+router.get("/:id/download", protect, downloadNote);
 router.get("/:id", protect, getNoteById);
 
 router.post("/:id/rate", protect, rateNote);
