@@ -1,0 +1,105 @@
+const Request = require("../models/Request");
+const User = require("../models/User");
+
+// POST /api/requests
+exports.createRequest = async (req, res) => {
+  try {
+    const { targetUploaderId, topicDescription, targetCourseCode, deadline } = req.body;
+
+    if (!targetUploaderId || !topicDescription || !targetCourseCode || !deadline) {
+      return res.status(400).json({
+        message: "Target uploader, topic description, course code and deadline are required",
+      });
+    }
+
+    const deadlineDate = new Date(deadline);
+    if (isNaN(deadlineDate.getTime())) {
+      return res.status(400).json({ message: "Invalid deadline date" });
+    }
+    if (deadlineDate < new Date()) {
+      return res.status(400).json({ message: "Deadline must be in the future" });
+    }
+
+    if (String(targetUploaderId) === String(req.user._id)) {
+      return res.status(400).json({ message: "You cannot send a request to yourself" });
+    }
+
+    const target = await User.findById(targetUploaderId);
+    if (!target) return res.status(404).json({ message: "Target uploader not found" });
+
+    const request = await Request.create({
+      requesterId: req.user._id,
+      targetUploaderId: target._id,
+      topicDescription,
+      targetCourseCode,
+      deadline: deadlineDate,
+    });
+
+    res.status(201).json(request);
+  } catch (err) {
+    if (err.name === "CastError") return res.status(400).json({ message: "Invalid id" });
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// GET /api/requests/incoming   (FR-7.1 + FR-7.2)
+exports.getIncomingRequests = async (req, res) => {
+  try {
+    const requests = await Request.find({ targetUploaderId: req.user._id })
+      .sort({ deadline: 1 }) // deadline eka langa ewa mulin
+      .populate("requesterId", "name indexNumber");
+
+    const now = Date.now();
+    const URGENT_MS = 3 * 24 * 60 * 60 * 1000; // dawas 3k wala adu nam urgent
+
+    const result = requests.map((r) => {
+      const msLeft = r.deadline.getTime() - now;
+      return {
+        ...r.toObject(),
+        isUrgent: r.status === "Pending" && msLeft <= URGENT_MS,
+        isOverdue: r.status === "Pending" && msLeft < 0,
+      };
+    });
+
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// GET /api/requests/sent   (mage yawapu requests)
+exports.getSentRequests = async (req, res) => {
+  try {
+    const requests = await Request.find({ requesterId: req.user._id })
+      .sort({ createdAt: -1 })
+      .populate("targetUploaderId", "name indexNumber");
+    res.json(requests);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// PATCH /api/requests/:id/status   body: { "status": "Fulfilled" }
+// Target uploader ta witharai wenas karanna puluwan
+exports.updateRequestStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    if (!["Pending", "Fulfilled", "Closed"].includes(status)) {
+      return res.status(400).json({ message: "Status must be Pending, Fulfilled or Closed" });
+    }
+
+    const request = await Request.findById(req.params.id);
+    if (!request) return res.status(404).json({ message: "Request not found" });
+
+    if (!request.targetUploaderId.equals(req.user._id)) {
+      return res.status(403).json({ message: "Only the target uploader can update this request" });
+    }
+
+    request.status = status;
+    await request.save();
+    res.json(request);
+  } catch (err) {
+    if (err.name === "CastError") return res.status(400).json({ message: "Invalid request id" });
+    res.status(500).json({ message: err.message });
+  }
+};
