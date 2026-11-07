@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ChevronDown, LayoutDashboard, LogOut, Search } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import studyMateLogo from "../assets/StudyMate.png";
 import NotificationBell from "./NotificationBell";
 
 export default function Topbar() {
@@ -36,7 +37,7 @@ export default function Topbar() {
     <header className="sticky top-0 z-40 flex h-18 items-center gap-6 bg-brand-900 px-6 text-white">
       <Link to="/" className="flex w-52 shrink-0 items-center gap-3">
         <span className="rounded-xl bg-white p-1">
-          <img src="/StudyMate.png" alt="StudyMate" className="h-9 w-9 object-contain" />
+          <img src={studyMateLogo} alt="StudyMate" className="h-9 w-9 object-contain" />
         </span>
         <span className="text-xl font-extrabold">StudyMate</span>
       </Link>
