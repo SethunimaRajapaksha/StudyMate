@@ -77,7 +77,13 @@ exports.getNotes = async (req, res) => {
         { tags: regex },
       ];
     }
-    if (tag) filter.tags = String(tag).toLowerCase();
+        if (tag) {
+      const list = String(tag)
+        .split(",")
+        .map((t) => t.trim().toLowerCase())
+        .filter(Boolean);
+      if (list.length) filter.tags = { $all: list };
+    }
     if (subject) filter.subject = new RegExp(`^${escapeRegex(subject)}$`, "i");
     if (courseCode) filter.courseCode = normalizeCourseCode(courseCode);
 
@@ -114,6 +120,21 @@ exports.getSubjects = async (req, res) => {
       { $sort: { count: -1 } },
     ]);
     res.json(rows.map((r) => ({ subject: r._id, count: r.count })));
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// GET /api/notes/tags   (popular tags)
+exports.getTags = async (req, res) => {
+  try {
+    const rows = await Note.aggregate([
+      { $unwind: "$tags" },
+      { $group: { _id: "$tags", count: { $sum: 1 } } },
+      { $sort: { count: -1, _id: 1 } },
+      { $limit: 20 },
+    ]);
+    res.json(rows.map((r) => ({ tag: r._id, count: r.count })));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

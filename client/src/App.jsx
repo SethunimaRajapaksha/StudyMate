@@ -7,6 +7,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import Explore from "./pages/Explore";
+import Upload from "./pages/Upload";
 
 export default function App() {
   return (
@@ -21,8 +23,8 @@ export default function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route path="/" element={<Home />} />
-          <Route path="/explore" element={<Placeholder title="Explore Notes" />} />
-          <Route path="/upload" element={<Placeholder title="Upload Notes" />} />
+          <Route path="/explore" element={<Explore />} />
+          <Route path="/upload" element={<Upload />} />
           <Route path="/notes/:id" element={<Placeholder title="Note Hub" />} />
           <Route path="/dashboard" element={<Placeholder title="Dashboard" />} />
         </Route>

@@ -5,6 +5,7 @@ const {
   uploadNote,
   getNotes,
   getSubjects,
+  getTags,
   getNoteById,
   updateNote,
   deleteNote,
@@ -22,6 +23,7 @@ const router = express.Router();
 router.post("/", protect, upload, uploadNote);
 router.get("/", protect, getNotes);
 router.get("/subjects", protect, getSubjects);
+router.get("/tags", protect, getTags);
 
 router.get("/:id/download", protect, downloadNote);
 router.get("/:id", protect, getNoteById);
