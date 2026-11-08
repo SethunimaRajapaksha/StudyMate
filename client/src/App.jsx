@@ -9,6 +9,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Explore from "./pages/Explore";
 import Upload from "./pages/Upload";
+import NoteHub from "./pages/NoteHub";
 
 export default function App() {
   return (
@@ -25,7 +26,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/explore" element={<Explore />} />
           <Route path="/upload" element={<Upload />} />
-          <Route path="/notes/:id" element={<Placeholder title="Note Hub" />} />
+          <Route path="/notes/:id" element={<NoteHub />} />
           <Route path="/dashboard" element={<Placeholder title="Dashboard" />} />
         </Route>
       </Route>
