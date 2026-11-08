@@ -46,7 +46,7 @@ exports.createRequest = async (req, res) => {
       user: target._id,
       type: "request",
       message: `${req.user.name} requested notes for ${code}`,
-      link: "/dashboard",
+      link: "/dashboard?tab=sent",
     });
 
     res.status(201).json(request);
@@ -117,7 +117,7 @@ exports.updateRequestStatus = async (req, res) => {
         user: request.requesterId,
         type: "request",
         message: `Your request for ${request.targetCourseCode} was marked ${status.toLowerCase()}`,
-        link: "/dashboard",
+        link: "/dashboard?tab=incoming",
       });
     }
 

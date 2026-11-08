@@ -10,6 +10,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Explore from "./pages/Explore";
 import Upload from "./pages/Upload";
 import NoteHub from "./pages/NoteHub";
+import Dashboard from "./pages/Dashboard";
 
 export default function App() {
   return (
@@ -27,7 +28,7 @@ export default function App() {
           <Route path="/explore" element={<Explore />} />
           <Route path="/upload" element={<Upload />} />
           <Route path="/notes/:id" element={<NoteHub />} />
-          <Route path="/dashboard" element={<Placeholder title="Dashboard" />} />
+          <Route path="/dashboard" element={<Dashboard />} />
         </Route>
       </Route>
 

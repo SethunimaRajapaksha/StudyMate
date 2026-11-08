@@ -33,7 +33,10 @@ function NotesSection({ title, params, emptyText }) {
     <section>
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-extrabold text-brand-900">{title}</h2>
-        <Link to="/explore" className="text-sm font-semibold text-brand-500 hover:text-brand-700">
+        <Link
+          to="/explore"
+          className="text-sm font-semibold text-brand-500 hover:text-brand-700"
+        >
           View all
         </Link>
       </div>
@@ -126,7 +129,10 @@ function RequestsPanel() {
     <div className={card}>
       <div className="flex items-center justify-between">
         <h3 className="font-extrabold text-brand-900">Requests for you</h3>
-        <Link to="/dashboard" className="text-sm font-semibold text-brand-500 hover:text-brand-700">
+        <Link
+          to="/dashboard?tab=incoming"
+          className="text-sm font-semibold text-brand-500 hover:text-brand-700"
+        >
           View all
         </Link>
       </div>

@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { CheckCircle2, FileText, UploadCloud, X } from "lucide-react";
 import api, { getErrorMessage } from "../api/axios";
 import useFetch from "../hooks/useFetch";
@@ -18,7 +18,8 @@ export default function Upload() {
   const inputRef = useRef(null);
   const { data: subjects } = useFetch("/notes/subjects");
 
-  const [form, setForm] = useState(emptyForm);
+     const [searchParams] = useSearchParams();
+   const [form, setForm] = useState({...emptyForm, courseCode: (searchParams.get("courseCode") || "").toUpperCase(),});
   const [file, setFile] = useState(null);
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState("");
