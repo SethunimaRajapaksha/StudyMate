@@ -4,8 +4,7 @@ A peer-to-peer note sharing platform for university students. Students upload le
 
 > **Learn Together, Succeed Together**
 
-**Live demo:** [add your Vercel link here after deployment]
-
+**Live demo:** https://study-mate-wheat-pi.vercel.app
 ## Features
 
 - Registration restricted to university emails (`@itum.mrt.ac.lk`), JWT login, forgot / reset password
